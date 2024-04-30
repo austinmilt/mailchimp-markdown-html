@@ -123,6 +123,21 @@ class ConverterTest {
     }
 
     @Test
+    void convertSubdocument_containsCharactersThatAreNotALink_doesntCreateATag() {
+        assertEquals("<p>[Link text https://www.example.com)</p>",
+                converter.convertSubdocument("[Link text https://www.example.com)"));
+
+        assertEquals("<p>[Link text https://www.example.com)]</p>",
+                converter.convertSubdocument("[Link text https://www.example.com)]"));
+
+        assertEquals("<p>(Link text https://www.example.com)</p>",
+                converter.convertSubdocument("(Link text https://www.example.com)"));
+
+        assertEquals("<p>[Link[] text() https://www.example.com)</p>",
+                converter.convertSubdocument("[Link[] text() https://www.example.com)"));
+    }
+
+    @Test
     void convertSubdocument_sampleA_returnsExpectedOutput() {
         final String markdown = """
                 # Sample Document
@@ -180,5 +195,19 @@ class ConverterTest {
                 <h2>This is a header <a href="http://yahoo.com">with a link</a></h2>
                         """;
         assertEquals(expected, html);
+    }
+
+    @Test
+    void convertSubdocument_multipleInlineHeadings_ignoresNonFirstHeadings() {
+        assertEquals("<h1>Header one # Header two</h1>", converter.convertSubdocument("# Header one # Header two"));
+        assertEquals("<h2>Header one ## Header two</h2>", converter.convertSubdocument("## Header one ## Header two"));
+        assertEquals("<h3>Header one ### Header two</h3>",
+                converter.convertSubdocument("### Header one ### Header two"));
+        assertEquals("<h4>Header one #### Header two</h4>",
+                converter.convertSubdocument("#### Header one #### Header two"));
+        assertEquals("<h5>Header one ##### Header two</h5>",
+                converter.convertSubdocument("##### Header one ##### Header two"));
+        assertEquals("<h6>Header one ###### Header two</h6>",
+                converter.convertSubdocument("###### Header one ###### Header two"));
     }
 }

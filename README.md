@@ -2,13 +2,6 @@
 
 CLI to convert markdown files to HTML.
 
-## TODO
-- parallel process large files
-- imports (subdocuments)
-- invalid markdown errors
-- randomly generated test data
-- line breakpoint cli arg (e.g. break after 80 characters)
-
 ## Contribute
 
 ### Get Requirements
@@ -38,6 +31,13 @@ $ ./mvnw -Dexec.args=--help
 ```
 $ ./mvnw -Dexec.args="list ."
 ```
+
+## High-level TODOs
+- parallel process large files
+    o related: parse doc by streaming over unicode graphemes rather than recursively splitting strings
+- imports (subdocuments)
+- randomly generated test data
+- line breakpoint cli arg (e.g. break HTML after 80 characters)
 
 ## Attribution
 This repo uses the following picocli template: https://github.com/maciejwalkowiak/java-cli-project-template

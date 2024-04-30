@@ -1,34 +1,44 @@
 package org.example;
 
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
-import java.util.stream.Stream;
-
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "convert")
 public class ConvertMarkdownCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "file path of the markdown file to convert")
-    private Path path;
+    @CommandLine.Parameters(index = "0", description = "file path of the input markdown file")
+    private Path input;
+
+    @CommandLine.Parameters(index = "1", description = "file path of the output HTML file")
+    private Path output;
 
     @Override
     public Integer call() {
-        WildcardFileFilter filter = new WildcardFileFilter("*.java");
+        try (Scanner reader = new Scanner(new FileReader(input.toFile()))) {
+            // TODO stream content through conversion (inc. parallelized)
+            final StringBuilder inputString = new StringBuilder();
+            while (reader.hasNext()) {
+                inputString.append(reader.next());
+            }
 
-        try (Stream<Path> stream = Files.walk(path)) {
-            stream.filter(path -> filter.accept(path.toFile()))
-                    .forEach(System.out::println);
+            final Converter converter = new Converter();
+            final String outputString = converter.convertDocument(inputString.toString());
+
+            try (PrintWriter writer = new PrintWriter(output.toFile(), StandardCharsets.UTF_8)) {
+                writer.write(outputString);
+            }
             return 0;
-        } catch (NoSuchFileException e) {
-            System.err.println("specified directory does not exist");
         } catch (IOException e) {
-            System.err.println("Ooops, an error happened " + e.getMessage());
+            System.err.println("Unable to read input file " + e.getMessage());
+            return 1;
         }
-        return 1;
     }
 }
