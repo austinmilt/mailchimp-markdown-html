@@ -32,8 +32,7 @@ public class Converter {
                   <head>
                     <meta charset="utf-8">
                   </head>
-                  <body>
-                  %s
+                  <body>%s
                   </body>
                 </html>
                     """, convertSubdocument(markdownDocument));
@@ -45,86 +44,114 @@ public class Converter {
     String convertSubdocument(String markdownSubdocument) {
         final MarkdownNode markdownTree = parseDocumentTree(markdownSubdocument);
         final StringBuilder htmlBuilder = new StringBuilder();
-
-        // BFS visitation of nodes to properly build the output document
-        final List<MarkdownNode> unopenedNodes = new ArrayList<>();
-        final List<MarkdownNode> unclosedNodes = new ArrayList<>();
-        unopenedNodes.add(markdownTree);
-        while (!unopenedNodes.isEmpty()) {
-            final MarkdownNode current = unopenedNodes.remove(0);
-            if (current.outerElement != null) {
-                htmlBuilder.append(current.outerElement.toHtmlOpening());
-            }
-
-            unopenedNodes.addAll(current.children);
-
-            // Closing happens in reverse order of opening because nested elements
-            // must be closed before their containing elements.
-            // TODO is it more efficient to append and then loop backward?
-            unclosedNodes.add(0, current);
-        }
-
-        for (MarkdownNode current : unclosedNodes) {
-            if (current.outerElement != null) {
-                htmlBuilder.append(current.outerElement.toHtmlClosing());
-            }
-        }
-
-        return htmlBuilder.toString();
+        markdownTree.toHtml(htmlBuilder);
+        return htmlBuilder.toString().strip();
     }
 
-    MarkdownNode parseDocumentTree(String markdownSubdocument) {
-        final MarkdownNode root = new MarkdownNode(null);
+    private MarkdownNode parseDocumentTree(String markdownSubdocument) {
+        final MarkdownNode root = MarkdownNode.root();
+        parseDocumentTree(markdownSubdocument, root);
+        return root;
+    }
+
+    private void parseDocumentTree(String markdownSubdocument, MarkdownNode parent) {
         final String[] markdownSections = markdownSubdocument.split("\n\n");
         for (String section : markdownSections) {
             section = section.strip();
             if (section.isBlank()) {
                 continue;
-            }
-            if (section.startsWith("######")) {
-                root.children.add(MarkdownNode.simple(H6Element.of(), section.substring(6).strip()));
+            } else if (section.startsWith("######")) {
+                // note intentionally including additional "#" within the h6 tag
+                parent.addChild(MarkdownNode.simple(H6Element.of(), section.substring(6).strip()));
             } else if (section.startsWith("#####")) {
-                root.children.add(MarkdownNode.simple(H5Element.of(), section.substring(5).strip()));
+                parent.addChild(MarkdownNode.simple(H5Element.of(), section.substring(5).strip()));
             } else if (section.startsWith("####")) {
-                root.children.add(MarkdownNode.simple(H4Element.of(), section.substring(4).strip()));
+                parent.addChild(MarkdownNode.simple(H4Element.of(), section.substring(4).strip()));
             } else if (section.startsWith("###")) {
-                root.children.add(MarkdownNode.simple(H3Element.of(), section.substring(3).strip()));
+                parent.addChild(MarkdownNode.simple(H3Element.of(), section.substring(3).strip()));
             } else if (section.startsWith("##")) {
-                root.children.add(MarkdownNode.simple(H2Element.of(), section.substring(2).strip()));
+                parent.addChild(MarkdownNode.simple(H2Element.of(), section.substring(2).strip()));
             } else if (section.startsWith("#")) {
-                root.children.add(MarkdownNode.simple(H1Element.of(), section.substring(1).strip()));
+                parent.addChild(MarkdownNode.simple(H1Element.of(), section.substring(1).strip()));
             } else if (section.startsWith("[")) {
                 final String linkText = section.substring(1, section.indexOf("]"));
                 final String urlText = section.substring(section.indexOf("(") + 1, section.indexOf(")"));
-                root.children.add(MarkdownNode.link(linkText, urlText));
+                parent.addChild(MarkdownNode.link(linkText, urlText));
             } else {
-                root.children.add(MarkdownNode.simple(ParagraphElement.of(), section));
+                parent.addChild(MarkdownNode.simple(ParagraphElement.of(), section));
             }
         }
-        return root;
     }
 
     private static class MarkdownNode {
-        public final List<MarkdownNode> children = new ArrayList<>();
-
-        // TODO hook @Nullable up in VS Code
-        @Nullable
-        public final MarkdownElement outerElement;
+        private MarkdownNode parent;
+        private final MarkdownElement outerElement;
+        private final List<MarkdownNode> children = new ArrayList<>();
 
         private MarkdownNode(@Nullable MarkdownElement outerElement) {
             this.outerElement = outerElement;
         }
 
+        public static MarkdownNode root() {
+            return new MarkdownNode(null);
+        }
+
+        /**
+         * Create a node with an outer element with a single child that is a string
+         * 
+         * @param element outer element (e.g. h1 tag)
+         * @param content content of the outer element (e.g. h1 text)
+         * @return
+         */
         public static MarkdownNode simple(MarkdownElement element, String content) {
             final MarkdownNode result = new MarkdownNode(element);
             result.children.add(new MarkdownNode(NakedElement.of(content)));
             return result;
         }
 
+        /**
+         * Create a node for a markdown link
+         * 
+         * @param linkText text to be displayed in the link
+         * @param urlText  href/url to which the link should navigate
+         * @return
+         */
         public static MarkdownNode link(String linkText, String urlText) {
             final MarkdownNode result = new MarkdownNode(LinkElement.of(urlText));
             result.children.add(new MarkdownNode(NakedElement.of(linkText)));
             return result;
+        }
+
+        public void addChild(MarkdownNode child) {
+            children.add(child);
+            child.parent = this;
+        }
+
+        @Nullable
+        public MarkdownNode getParent() {
+            return parent;
+        }
+
+        /**
+         * Recursively adds self and children to an output HTML string via (implicit)
+         * BFS.
+         * 
+         * @param htmlBuilder output HTML to write to
+         */
+        public void toHtml(StringBuilder htmlBuilder) {
+            if (outerElement != null) {
+                htmlBuilder.append(outerElement.toHtmlOpening());
+            }
+            for (MarkdownNode child : children) {
+                // put newlines between HTML sections to make it easier to read
+                if ((child.outerElement != null) && !(child.outerElement instanceof NakedElement)) {
+                    htmlBuilder.append("\n\n");
+                }
+                child.toHtml(htmlBuilder);
+            }
+            if (outerElement != null) {
+                htmlBuilder.append(outerElement.toHtmlClosing());
+            }
         }
     }
 }

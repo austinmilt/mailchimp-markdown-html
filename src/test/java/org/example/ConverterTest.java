@@ -18,8 +18,11 @@ class ConverterTest {
     void convert_emptyString_returnsMinimalHTML() {
         final String markdown = "";
 
-        final String html = converter.convertSubdocument(markdown);
+        final String html = converter.convertDocument(markdown);
 
+        // TODO this is a fragile test since it embeds some structure in the HTML that
+        // isnt necessary to the nature of the test (i.e. that we get valid HTML), so
+        // it will fail e.g. when we indent with four spaces instead of two.
         final String expected = """
                 <!DOCTYPE html>
                 <html lang="en">
@@ -137,6 +140,9 @@ class ConverterTest {
                 converter.convertSubdocument("[Link[] text() https://www.example.com)"));
     }
 
+    // TODO this is a fragile test since it embeds some structure in the HTML that
+    // isnt necessary to the nature of the test (i.e. that we get valid HTML), so
+    // it will fail e.g. when we indent with four spaces instead of two.
     @Test
     void convertSubdocument_sampleA_returnsExpectedOutput() {
         final String markdown = """
@@ -160,6 +166,9 @@ class ConverterTest {
         assertEquals(expected, html);
     }
 
+    // TODO this is a fragile test since it embeds some structure in the HTML that
+    // isnt necessary to the nature of the test (i.e. that we get valid HTML), so
+    // it will fail e.g. when we indent with four spaces instead of two.
     @Test
     void convertSubdocument_sampleB_returnsExpectedOutput() {
         final String markdown = """

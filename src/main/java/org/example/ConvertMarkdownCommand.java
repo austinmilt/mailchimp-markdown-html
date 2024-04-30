@@ -1,14 +1,13 @@
 package org.example;
 
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "convert")
@@ -23,7 +22,6 @@ public class ConvertMarkdownCommand implements Callable<Integer> {
     @Override
     public Integer call() {
         try (Scanner reader = new Scanner(new FileReader(input.toFile()))) {
-            // TODO stream content through conversion (inc. parallelized)
             final StringBuilder inputString = new StringBuilder();
             while (reader.hasNext()) {
                 inputString.append(reader.next());
