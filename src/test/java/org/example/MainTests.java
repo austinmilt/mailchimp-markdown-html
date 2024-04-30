@@ -1,13 +1,14 @@
 package org.example;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import picocli.CommandLine;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import picocli.CommandLine;
 
 class MainTests {
     private Main app = new Main();

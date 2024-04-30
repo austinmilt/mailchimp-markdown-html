@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
-
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "convert")
@@ -22,13 +21,10 @@ public class ConvertMarkdownCommand implements Callable<Integer> {
     @Override
     public Integer call() {
         try (Scanner reader = new Scanner(new FileReader(input.toFile()))) {
-            final StringBuilder inputString = new StringBuilder();
-            while (reader.hasNext()) {
-                inputString.append(reader.next());
-            }
+            final String markdown = reader.useDelimiter("\\A").next();
 
             final Converter converter = new Converter();
-            final String outputString = converter.convertDocument(inputString.toString());
+            final String outputString = converter.convertDocument(markdown);
 
             try (PrintWriter writer = new PrintWriter(output.toFile(), StandardCharsets.UTF_8)) {
                 writer.write(outputString);
