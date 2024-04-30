@@ -10,13 +10,14 @@ import java.util.stream.Stream;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import picocli.CommandLine;
 
-@CommandLine.Command(name = "list")
-public class ListFilesCommand implements Callable<Integer> {
+@CommandLine.Command(name = "convert")
+public class ConvertMarkdownCommand implements Callable<Integer> {
 
-    @CommandLine.Parameters(index = "0", description = "directory to search")
+    @CommandLine.Parameters(index = "0", description = "file path of the markdown file to convert")
     private Path path;
 
-    @Override public Integer call() {
+    @Override
+    public Integer call() {
         WildcardFileFilter filter = new WildcardFileFilter("*.java");
 
         try (Stream<Path> stream = Files.walk(path)) {

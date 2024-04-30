@@ -1,23 +1,21 @@
-# Java CLI project template
+# Markdown-to-HTML
 
-Probably the fastest way to bootstrap a **Java** Command Line Application (**CLI**) project!
+CLI to convert markdown files to HTML.
 
-Click the big green *Use This Template* button and start building your own CLI.
+## TODO
+- parallel process large files
+- imports (subdocuments)
+- invalid markdown errors
+- randomly generated test data
+- line breakpoint cli arg (e.g. break after 80 characters)
 
-## 🤩 Highlights
+## Contribute
 
-- uses [Picocli](https://picocli.info/) for simple and elegant commands implementation
-- builds to an **executable jar** and **GraalVM Native Image**
-- preconfigured `help` and `version` commands
-- generates Bash/ZSH autocompletion scripts
-- uses **Maven** as a build tool
-- **no frameworks** like Spring, Micronaut or Quarkus
-
-## 🛠 Requirements
-
+### Get Requirements
 - GraalVM distribution of Java (easy to install with https://sdkman.io/)
 
-## 🤔 How to use
+
+### How to use
 
 Run tests & build an executable JAR:
 
@@ -37,4 +35,9 @@ Run application through Maven
 $ ./mvnw -Dexec.args=--help
 ```
 
-Sounds good? Consider [❤️ Sponsoring](https://github.com/sponsors/maciejwalkowiak) the project! Thank you!
+```
+$ ./mvnw -Dexec.args="list ."
+```
+
+## Attribution
+This repo uses the following picocli template: https://github.com/maciejwalkowiak/java-cli-project-template

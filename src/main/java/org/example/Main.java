@@ -4,7 +4,7 @@ import org.example.picocli.PropertiesFileVersionProvider;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "app", mixinStandardHelpOptions = true, versionProvider = PropertiesFileVersionProvider.class, subcommands = {
-        HelloCommand.class, ListFilesCommand.class })
+        ConvertMarkdownCommand.class })
 public class Main {
 
     public static void main(String[] args) {
